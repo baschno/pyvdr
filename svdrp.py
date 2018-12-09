@@ -25,7 +25,7 @@ class SVDRP(object):
 
         self.socket.sendall(cmd)
 
-    def parse_response(self, resp):
+    def _parse_response(self, resp):
         # <Reply code:3><-|Space><Text><Newline>
         matchobj = re.match(r'^(\d{3})(.)(.*)', resp, re.M | re.I)
 
@@ -33,7 +33,7 @@ class SVDRP(object):
 
     def read_response(self):
         for line in self.socket_file:
-            code, separator, value = self.parse_response(line)
+            code, separator, value = self._parse_response(line)
             self.responses.append((code, separator, value))
 
             if separator != '-' and len(self.responses) > 1:
@@ -44,6 +44,7 @@ class SVDRP(object):
         print("".join(str(self.responses)))
 
     def get_response(self):
+        self.read_response()
         return self.responses
 
     def shutdown(self):
