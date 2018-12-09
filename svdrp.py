@@ -10,7 +10,7 @@ class SVDRP(object):
         self.port = port
         self.socket = None
         self.socket_file = None
-        self.response = []
+        self.responses = []
 
     def connect(self):
         if self.socket is None:
@@ -34,20 +34,23 @@ class SVDRP(object):
     def read_response(self):
         for line in self.socket_file:
             code, separator, value = self.parse_response(line)
-            self.response.append((code, separator, value))
+            self.responses.append((code, separator, value))
 
-            if separator != '-' and len(self.response) > 1:
+            if separator != '-' and len(self.responses) > 1:
                 break
 
     def get_response_text(self):
         self.read_response()
-        print("".join(str(self.response)))
+        print("".join(str(self.responses)))
+
+    def get_response(self):
+        return self.responses
 
     def shutdown(self):
         self.send_cmd("quit")
         self.socket_file.close()
         self.socket.close()
-        self.response = None
+        self.responses = None
 
 
 if __name__ == '__main__':
