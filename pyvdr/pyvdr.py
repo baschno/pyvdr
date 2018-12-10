@@ -6,12 +6,19 @@ from svdrp import SVDRP
 
 EPG_DATA_RECORD = '215'
 epg_info = namedtuple('EPGDATA', 'Channel Title Description')
+timer_info = namedtuple('TIMER', 'Status Name, Date, Description')
+
+FLAG_TIMER_ACTIVE = 1
+FLAG_TIMER_INSTANT_RECORDING = 2
+FLAG_TIMER_VPS = 4
+FLAG_TIMER_RECORD = 8
 
 class PYVDR(object):
 
     def __init__(self, hostname = 'localhost'):
         self.hostname = hostname
         self.svdrp = SVDRP(hostname = self.hostname)
+        self.timers = None
 
     def stat(self):
         self.svdrp.connect()
@@ -29,10 +36,32 @@ class PYVDR(object):
         current_channel = self.svdrp.get_response()[-1]
         return current_channel[2]
 
-    def _parse_channel_response(self, channel_data):
+    @staticmethod
+    def _parse_channel_response(channel_data):
         print(channel_data[2])
         channel_info = re.match(r'^(\d*)\s(.*)$', channel_data[2], re.M | re.I)
         return channel_info.group(1), channel_info.group(2)
+
+    def get_timer_info(self):
+        self.svdrp.connect()
+        self.svdrp.send_cmd("LSTT")
+        timers = self.svdrp.get_response()
+        print("Timers " + str(timers))
+        for timer in timers:
+            print(timer.Value)
+            if timer.Code != '250':
+                continue
+            timer_attr = timer.Value.split(':')
+            # print(timer_attr)
+            # print(timer_attr[0])
+            # print(timer_attr[0][-1])
+            # print(timer_attr[1])
+            # print(timer_attr[2])
+            # print(timer_attr[3])
+            # print(timer_attr[7].split('~')[0])
+            # print(timer_attr[7].split('~')[1])
+            print(timer_attr[0][-1]&FLAG_TIMER_ACTIVE == True ? 'Active' : '')
+            print(timer_info(Status=timer_attr[0][-1], Date=timer_attr[2], Name=timer_attr[7].split('~')[0], Description=timer_attr[7].split('~')[1]))
 
     def get_channel_info(self):
         self.svdrp.connect()
@@ -88,5 +117,5 @@ class PYVDR(object):
 if __name__ == '__main__':
     print("pyvdr")
     pyvdr = PYVDR(hostname='easyvdr.fritz.box')
-    print(pyvdr.get_channel_info())
+    print(pyvdr.get_timer_info())
     pyvdr.finish()

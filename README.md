@@ -8,6 +8,10 @@ Python library for accessing a Linux VDR via SVDRP
 ```
 
 
+## Parsing of Responses
+The first and the last row just contain a ' ' as separator while other have a '-'.
+
+Example:
 ```
 [
 ('220', ' ', 'easyVDR SVDRP VideoDiskRecorder 2.2.0; Sun Dec  9 21:17:06 2018; UTF-8\r'), 
