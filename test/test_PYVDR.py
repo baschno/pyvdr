@@ -7,12 +7,13 @@ class TestPYVDR(unittest.TestCase):
         self.func = p.PYVDR()
 
     def test__parse_channel_response(self):
-        chan_no_1, chan_name_ARD = p.PYVDR._parse_channel_response("1 ARD")
-        self.assertEquals(chan_no_1, "1")
-        self.assertEquals(chan_name_ARD, "ARD")
-        chan_no_11, chan_name_Prosieben = p.PYVDR._parse_channel_response("11 Prosieben")
-        self.assertEquals(chan_no_11, "11")
-        self.assertEquals(chan_name_Prosieben, "Prosieben")
+        chan_ard = p.PYVDR._parse_channel_response(["", "","1 ARD"])
+        self.assertEquals(chan_ard.Number, "1")
+        self.assertEquals(chan_ard.Name, "ARD")
+
+        chan_prosieben = p.PYVDR._parse_channel_response(["", "","11 Pro Sieben"])
+        self.assertEquals(chan_prosieben.Number, "11")
+        self.assertEquals(chan_prosieben.Name, "Pro Sieben")
 
     def test__check_timer_recording_flag(self):
         t_active = p.timer_info(Status=1, Name="Test1", Description="Description1", Date="2018-08-01")

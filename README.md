@@ -25,7 +25,46 @@ Example:
 ('215', ' ', 'End of EPG data\r')]
 ```
 
+LSTE 2 now
+```
+215-C C-102-1079-11110 ZDF HD
+215-E 45654 1544564700 4500 4E 4
+215-T Markus Lanz
+215-D Ole von Beust, Politiker - Hamburgs ehemaliger Erster Bürgermeister sagt: "Der Wahlkampf hat belebend gewirkt." Von Beust erklärt, warum er mit dem Ergebnis zufrieden ist und wie der Aufbruch in der CDU gelingen kann.|Kristina Dunz, Journalistin - Auch sie war beim CDU-Parteitag in Hamburg und sagt: "Es geht ein Riss durch die Christdemokraten." In der Sendung erzählt Dunz, wie sie die Stimmung in der Partei vor Ort erlebt hat.|Wolfgang Grupp, Unternehmer - Er sprach sich im Vorfeld offen für Friedrich Merz als Parteivorsitzenden aus. Grupp sagt: "Die Chance auf einen Kurswechsel der CDU wurde vertan." Der Unternehmer gibt seine Einschätzung.|Benedikt Böhm, Speedbergsteiger - Der Extrembergsteiger weiß: "Der Tod ist Teil des Sports." In der Sendung erklärt Böhm, warum der Tod immer eine Option ist, und erzählt von seiner Speedbesteigung des Mount Damavand. Moderation: Markus Lanz|HD-Produktion|Altersfreigabe: 6
+215-G 80
+215-X 2 03 deu Stereo
+215-X 2 03 mul ohne Originalton
+215-X 2 03 mis ohne Audiodeskription
+215-X 2 03 deu Dolby Digital 2.0
+215-X 5 0B deu HDTV
+215-X 3 10 deu DVB-Untertitel
+215-V 1544564700
+215-e
+215-c
+215 End of EPG data
+```
+```
+215-e
+215-E 4603 1545174000 3600 51 6
+215-T CNN Today (with World Sport)
+215-D CNN's Michael Holmes and Amara Walker from Atlanta, set the agenda for the day's most important news, business and sport stories.
+215-G 20
+215-e
+215-c
+```
+
+## Chan
+```
+250 2 ZDF HD
+```
+
+
 ## Timers
+
+Plain response
+```
+250-1 1:3:2018-12-12:2013:2330:50:99:The Taste~Es weihnachtet sehr! Acht ehemalige Schützlinge der Coaches Cornelia Poletto, Alexander Herrmann, Frank Rosin und Roland Trettl kochen bei der grossen Weihnachtsspezial-Challenge.:<epgsearch><channel>3 - SAT.1</channel><searchtimer>The taste</searchtimer><start>1544641980</start><stop>1544653800</stop><s-id>4</s-id><eventid>4353</eventid></epgsearch>
+```
 
 ### Status Flags
 Flags in timer definition
