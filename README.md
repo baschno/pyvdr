@@ -24,3 +24,15 @@ Example:
 ('215', '-', 'c'), 
 ('215', ' ', 'End of EPG data\r')]
 ```
+
+## Timers
+
+### Status Flags
+Flags in timer definition
+```
+1   the timer is active (and will record if it hits)
+2   this is an instant recording timer
+4   this timer uses VPS
+8   this timer is currently recording (may only be up-to-date with SVDRP)
+```
+Those flags are bit-representations in the timers' status field.

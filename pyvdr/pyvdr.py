@@ -6,12 +6,12 @@ from svdrp import SVDRP
 
 EPG_DATA_RECORD = '215'
 epg_info = namedtuple('EPGDATA', 'Channel Title Description')
-timer_info = namedtuple('TIMER', 'Status Name, Date, Description')
+timer_info = namedtuple('TIMER', 'Status Name Date Description')
 
 FLAG_TIMER_ACTIVE = 1
 FLAG_TIMER_INSTANT_RECORDING = 2
 FLAG_TIMER_VPS = 4
-FLAG_TIMER_RECORD = 8
+FLAG_TIMER_RECORDING = 8
 
 class PYVDR(object):
 
@@ -60,8 +60,11 @@ class PYVDR(object):
             # print(timer_attr[3])
             # print(timer_attr[7].split('~')[0])
             # print(timer_attr[7].split('~')[1])
-            print(timer_attr[0][-1]&FLAG_TIMER_ACTIVE == True ? 'Active' : '')
             print(timer_info(Status=timer_attr[0][-1], Date=timer_attr[2], Name=timer_attr[7].split('~')[0], Description=timer_attr[7].split('~')[1]))
+
+    @staticmethod
+    def _check_timer_recording_flag(timer_info, flag):
+        return timer_info.Status & flag
 
     def get_channel_info(self):
         self.svdrp.connect()
