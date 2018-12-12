@@ -1,1 +1,1 @@
-import pyvdr
+from .pyvdr import PYVDR
