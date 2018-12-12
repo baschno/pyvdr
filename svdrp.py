@@ -2,7 +2,9 @@
 
 import re
 import socket
+from collections import namedtuple
 
+response_data = namedtuple('ResponseData', 'Code Separator Value')
 
 class SVDRP(object):
     def __init__(self, hostname = 'localhost', port = 6419):
@@ -25,25 +27,40 @@ class SVDRP(object):
 
         self.socket.sendall(cmd)
 
-    def parse_response(self, resp):
+    def _parse_response(self, resp):
         # <Reply code:3><-|Space><Text><Newline>
         matchobj = re.match(r'^(\d{3})(.)(.*)', resp, re.M | re.I)
 
-        return matchobj.group(1), matchobj.group(2), matchobj.group(3)
+        return response_data(Code=matchobj.group(1), Separator=matchobj.group(2), Value=matchobj.group(3))
 
-    def read_response(self):
+    """
+    Gets the response from the last CMD and puts it in the internal list.
+    :return Namedtuple (Code, Separator, Value)
+    """
+    def _read_response(self):
         for line in self.socket_file:
-            code, separator, value = self.parse_response(line)
-            self.responses.append((code, separator, value))
+            response_entry = self._parse_response(line)
+            self.responses.append(response_entry)
 
-            if separator != '-' and len(self.responses) > 1:
+            # The first and last row are separated simply by ' ', other with '-'.
+            # End once found a ' ' separator
+            if response_entry.Separator != '-' and len(self.responses) > 1:
                 break
 
-    def get_response_text(self):
-        self.read_response()
+    """
+    Gets the response of the latest CMD as plaintext
+    :return response as plain text
+    """
+    def get_response_as_text(self):
+        self._read_response()
         print("".join(str(self.responses)))
 
+    """
+    Gets the response of the latest CMD as data structure
+    :return List of Namedtuple (Code, Separator, Value)
+    """
     def get_response(self):
+        self._read_response()
         return self.responses
 
     def shutdown(self):
