@@ -43,26 +43,53 @@ class PYVDR(object):
         channel_parts = re.match(r'^(\d*)\s(.*)$', channel_data[2], re.M | re.I)
         return channel_info(Number=channel_parts.group(1), Name=channel_parts.group(2))
 
-    def get_timer_info(self):
+    @staticmethod
+    def _parse_timer_response(response):
+        timer_attr = response.Value.split(':')
+        # print(timer_attr)
+        # print(timer_attr[0])
+        # print(timer_attr[0][-1])
+        # print(timer_attr[1])
+        # print(timer_attr[2])
+        # print(timer_attr[3])
+        # print(timer_attr[7].split('~')[0])
+        # print(timer_attr[7].split('~')[1])
+        return (timer_info(Status=timer_attr[0].split(' ')[1],
+                           Date=timer_attr[2],
+                           Name=timer_attr[7].split('~')[0],
+                           Description=""))
+                           #timer_attr[7].split('~')[1]))
+
+    def get_timers(self):
+        timers = []
         self.svdrp.connect()
         self.svdrp.send_cmd("LSTT")
-        timers = self.svdrp.get_response()
-        for timer in timers:
-            if timer.Code != '250':
+        responses = self.svdrp.get_response()
+        for response in responses:
+            if response.Code != '250':
                 continue
-            timer_attr = timer.Value.split(':')
-            # print(timer_attr)
-            # print(timer_attr[0])
-            # print(timer_attr[0][-1])
-            # print(timer_attr[1])
-            # print(timer_attr[2])
-            # print(timer_attr[3])
-            # print(timer_attr[7].split('~')[0])
-            # print(timer_attr[7].split('~')[1])
-            return (timer_info(Status=timer_attr[0][-1], Date=timer_attr[2], Name=timer_attr[7].split('~')[0], Description=timer_attr[7].split('~')[1]))
+            timers.append(self._parse_timer_response(response))
+
+
+    def is_recording(self):
+        self.svdrp.connect()
+        self.svdrp.send_cmd("LSTT")
+        responses = self.svdrp.get_response()
+        for response in responses:
+            if response.Code != '250':
+                continue
+            timer = self._parse_timer_response(response)
+            if self._check_timer_recording_flag(timer, FLAG_TIMER_RECORDING):
+                return timer
+            if self._check_timer_recording_flag(timer, FLAG_TIMER_INSTANT_RECORDING):
+                return timer
+
+        return None
 
     @staticmethod
     def _check_timer_recording_flag(timer_info, flag):
+        if isinstance(timer_info.Status, str):
+            return int(timer_info.Status) & flag
         return timer_info.Status & flag
 
     def get_channel_info(self):
@@ -114,5 +141,6 @@ class PYVDR(object):
 if __name__ == '__main__':
     print("pyvdr")
     pyvdr = PYVDR(hostname='easyvdr.fritz.box')
-    print(pyvdr.get_channel_info())
+    #print(pyvdr.get_channel_info())
+    print("Recording: " + str(pyvdr.is_recording()))
     pyvdr.finish()
