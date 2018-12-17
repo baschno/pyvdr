@@ -22,7 +22,7 @@ class SVDRP(object):
     def send_cmd(self, cmd):
         cmd += '\r\n'
 
-        if isinstance(cmd, unicode):
+        if isinstance(cmd, str):
             cmd = cmd.encode("utf-8")
 
         self.socket.sendall(cmd)

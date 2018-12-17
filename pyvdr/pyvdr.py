@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import re
 from collections import namedtuple
 from svdrp import SVDRP
@@ -140,7 +141,20 @@ class PYVDR(object):
 
 if __name__ == '__main__':
     print("pyvdr")
-    pyvdr = PYVDR(hostname='easyvdr.fritz.box')
-    #print(pyvdr.get_channel_info())
-    print("Recording: " + str(pyvdr.is_recording()))
+    parser = argparse.ArgumentParser()
+    parser.add_argument("hostname", help="VDR Hostname")
+    parser.add_argument("command", help="Command to be executed [CHAN+|CHAN-|TIMER|CHANNEL]")
+    args = parser.parse_args()
+    pyvdr = PYVDR(hostname=args.hostname)
+    if args.command == "CHAN+":
+        print(pyvdr.channel_up())
+    elif args.command == "CHAN-":
+        print(pyvdr.channel_down())
+    elif args.command == "TIMER":
+        print(pyvdr.get_timers())
+    elif args.command == "CHANNEL":
+        print(pyvdr.get_channel_info())
+    elif args.command == "REC":
+        print("Recording: " + str(pyvdr.is_recording()))
+
     pyvdr.finish()
