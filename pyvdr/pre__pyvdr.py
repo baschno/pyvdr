@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
-from .svdrp import SVDRP
+import argparse
 import re
 from collections import namedtuple
+from svdrp import SVDRP
 
 EPG_DATA_RECORD = '215'
 epg_info = namedtuple('EPGDATA', 'Channel Title Description')
@@ -13,6 +14,7 @@ FLAG_TIMER_ACTIVE = 1
 FLAG_TIMER_INSTANT_RECORDING = 2
 FLAG_TIMER_VPS = 4
 FLAG_TIMER_RECORDING = 8
+
 
 class PYVDR(object):
 
@@ -145,5 +147,25 @@ class PYVDR(object):
     def finish(self):
         self.svdrp.shutdown()
 
-    def mypyvdr(self):
-        return (u'blubb')
+
+if __name__ == '__main__':
+    print("pyvdr")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("hostname", help="VDR Hostname")
+    parser.add_argument("command", help="Command to be executed [CHAN+|CHAN-|TIMER|CHANNEL]")
+    args = parser.parse_args()
+    pyvdr = PYVDR(hostname=args.hostname)
+    if args.command == "CHAN+":
+        print(pyvdr.channel_up())
+    if args.command == "STAT":
+        print(pyvdr.stat())
+    elif args.command == "CHAN-":
+        print(pyvdr.channel_down())
+    elif args.command == "TIMER":
+        print(pyvdr.get_timers())
+    elif args.command == "CHANNEL":
+        print(pyvdr.get_channel_info())
+    elif args.command == "REC":
+        print("Recording: " + str(pyvdr.is_recording()))
+
+    pyvdr.finish()
