@@ -14,11 +14,12 @@ FLAG_TIMER_INSTANT_RECORDING = 2
 FLAG_TIMER_VPS = 4
 FLAG_TIMER_RECORDING = 8
 
+
 class PYVDR(object):
 
-    def __init__(self, hostname = 'localhost'):
+    def __init__(self, hostname='localhost'):
         self.hostname = hostname
-        self.svdrp = SVDRP(hostname = self.hostname)
+        self.svdrp = SVDRP(hostname=self.hostname)
         self.timers = None
 
     def stat(self):
@@ -34,6 +35,50 @@ class PYVDR(object):
                disk_stat_parts.group(2), \
                disk_stat_parts.group(3)
 
+    def get_channel_info(self):
+        self.svdrp.connect()
+        self.svdrp.send_cmd("CHAN")
+        generic_response = self.svdrp.get_response()[-1]
+        channel = self._parse_channel_response(generic_response)
+        return channel
+
+    def get_channel_epg_info(self):
+        self.svdrp.connect()
+        self.svdrp.send_cmd("CHAN")
+        chan = self.svdrp.get_response()[-1]
+        channel = self._parse_channel_response(chan)
+
+        self.svdrp.send_cmd("LSTE {} now".format(channel.Number))
+        epg_data = self.svdrp.get_response()[1:]
+        for d in epg_data:
+            if d[0] == EPG_DATA_RECORD:
+                print(d[2])
+                epg = re.match(r'^(\S)\s(.*)$', d[2], re.M | re.I)
+                if epg is not None:
+                    epg_field_type = epg.group(1)
+                    epg_field_value = epg.group(2)
+
+                    print(epg_field_type)
+                    if epg_field_type == 'T':
+                        epg_title = epg_field_value
+                    if epg_field_type == 'C':
+                        epg_channel = epg_field_value
+                    if epg_field_type == 'D':
+                        epg_description = epg_field_value
+
+        return channel, \
+               epg_info(Channel=epg_channel, Title=epg_title, Description=epg_description)
+
+    def channel_up(self):
+        self.svdrp.connect()
+        self.svdrp.send_cmd("CHAN +")
+        return self.svdrp.get_response_text()
+
+    def channel_down(self):
+        self.svdrp.connect()
+        self.svdrp.send_cmd("CHAN -")
+        return self.svdrp.get_response_text()
+
     def list_recordings(self):
         self.svdrp.connect()
         self.svdrp.send_cmd("LSTC")
@@ -47,7 +92,7 @@ class PYVDR(object):
 
     @staticmethod
     def _parse_channel_response(channel_data):
-        print(channel_data[2])
+        #print(channel_data[2])
         channel_parts = re.match(r'^(\d*)\s(.*)$', channel_data[2], re.M | re.I)
         return channel_info(Number=channel_parts.group(1), Name=channel_parts.group(2))
 
@@ -99,43 +144,6 @@ class PYVDR(object):
         if isinstance(timer_info.Status, str):
             return int(timer_info.Status) & flag
         return timer_info.Status & flag
-
-    def get_channel_info(self):
-        self.svdrp.connect()
-        self.svdrp.send_cmd("CHAN")
-        chan = self.svdrp.get_response()[-1]
-        channel = self._parse_channel_response(chan)
-
-        self.svdrp.send_cmd("LSTE {} now".format(channel.Number))
-        epg_data = self.svdrp.get_response()[1:]
-        for d in epg_data:
-            if d[0] == EPG_DATA_RECORD:
-                print(d[2])
-                epg = re.match(r'^(\S)\s(.*)$', d[2], re.M | re.I)
-                if epg is not None:
-                    epg_field_type = epg.group(1)
-                    epg_field_value = epg.group(2)
-
-                    print(epg_field_type)
-                    if epg_field_type == 'T':
-                        epg_title = epg_field_value
-                    if epg_field_type == 'C':
-                        epg_channel = epg_field_value
-                    if epg_field_type == 'D':
-                        epg_description = epg_field_value
-
-        return channel, \
-               epg_info(Channel=epg_channel, Title=epg_title, Description=epg_description)
-
-    def channel_up(self):
-        self.svdrp.connect()
-        self.svdrp.send_cmd("CHAN +")
-        return self.svdrp.get_response_text()
-
-    def channel_down(self):
-        self.svdrp.connect()
-        self.svdrp.send_cmd("CHAN -")
-        return self.svdrp.get_response_text()
 
     def test(self):
         self.svdrp.connect()

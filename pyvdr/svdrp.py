@@ -8,9 +8,11 @@ from collections import namedtuple
 response_data = namedtuple('ResponseData', 'Code Separator Value')
 SVDRP_EMPTY_RESPONSE = ""
 
+
 class SVDRP(object):
     SVDRP_STATUS_OK = '250'
-    def __init__(self, hostname = 'localhost', port = 6419):
+
+    def __init__(self, hostname='localhost', port=6419):
         self.hostname = hostname
         self.port = port
         self.socket = None
@@ -86,12 +88,3 @@ class SVDRP(object):
             self.socket_file.close()
             self.socket.close()
             self.responses = None
-
-
-if __name__ == '__main__':
-    print("SVDRP")
-    svdrp = SVDRP(hostname = 'easyvdr.fritz.box')
-    svdrp.connect()
-    svdrp.send_cmd("HELP")
-    svdrp.get_response_as_text()
-    svdrp.shutdown()
