@@ -36,7 +36,8 @@ class SVDRP(object):
             self.socket_file.close()
             self.socket.close()
         
-        self.responses = None
+        self.responses = []
+        self.socket = None
 
     def send_cmd(self, cmd):
         if not self.is_connected:
