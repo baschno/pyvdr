@@ -49,48 +49,6 @@ class PYVDR(object):
         self.svdrp.disconnect()
         return channel
 
-    def get_channel_epg_info(self):
-        self.svdrp.connect()
-        self.svdrp.send_cmd("CHAN")
-        chan = self.svdrp.get_response()[-1]
-        channel = self._parse_channel_response(chan)
-
-        self.svdrp.send_cmd("LSTE {} now".format(channel.number))
-        epg_data = self.svdrp.get_response()[1:]
-        for d in epg_data:
-            if d[0] == EPG_DATA_RECORD:
-                print(d[2])
-                epg = re.match(r'^(\S)\s(.*)$', d[2], re.M | re.I)
-                if epg is not None:
-                    epg_field_type = epg.group(1)
-                    epg_field_value = epg.group(2)
-
-                    print(epg_field_type)
-                    if epg_field_type == 'T':
-                        epg_title = epg_field_value
-                    if epg_field_type == 'C':
-                        epg_channel = epg_field_value
-                    if epg_field_type == 'D':
-                        epg_description = epg_field_value
-
-        return channel, \
-               epg_info(Channel=epg_channel, Title=epg_title, Description=epg_description)
-
-    def channel_up(self):
-        self.svdrp.connect()
-        self.svdrp.send_cmd("CHAN +")
-        return self.svdrp.get_response_text()
-
-    def channel_down(self):
-        self.svdrp.connect()
-        self.svdrp.send_cmd("CHAN -")
-        return self.svdrp.get_response_text()
-
-    def list_recordings(self):
-        self.svdrp.connect()
-        self.svdrp.send_cmd("LSTC")
-        return self.svdrp.get_response()[1:]
-
 
     @staticmethod
     def _parse_channel_response(channel_data):
@@ -104,7 +62,6 @@ class PYVDR(object):
     @staticmethod
     def _parse_timer_response(response):
         timer_attr = response.Value.split(':')
-        print(response.Value)
         # print(timer_attr)
         # print(timer_attr[0])
         # print(timer_attr[0][-1])
@@ -147,6 +104,49 @@ class PYVDR(object):
 
         self.svdrp.disconnect()
         return None
+
+    def get_channel_epg_info(self):
+        self.svdrp.connect()
+        self.svdrp.send_cmd("CHAN")
+        chan = self.svdrp.get_response()[-1]
+        channel = self._parse_channel_response(chan)
+
+        self.svdrp.send_cmd("LSTE {} now".format(channel.number))
+        epg_data = self.svdrp.get_response()[1:]
+        for d in epg_data:
+            if d[0] == EPG_DATA_RECORD:
+                print(d[2])
+                epg = re.match(r'^(\S)\s(.*)$', d[2], re.M | re.I)
+                if epg is not None:
+                    epg_field_type = epg.group(1)
+                    epg_field_value = epg.group(2)
+
+                    print(epg_field_type)
+                    if epg_field_type == 'T':
+                        epg_title = epg_field_value
+                    if epg_field_type == 'C':
+                        epg_channel = epg_field_value
+                    if epg_field_type == 'D':
+                        epg_description = epg_field_value
+
+        return channel, \
+               epg_info(Channel=epg_channel, Title=epg_title, Description=epg_description)
+
+    def channel_up(self):
+        self.svdrp.connect()
+        self.svdrp.send_cmd("CHAN +")
+        return self.svdrp.get_response_text()
+
+    def channel_down(self):
+        self.svdrp.connect()
+        self.svdrp.send_cmd("CHAN -")
+        return self.svdrp.get_response_text()
+
+    def list_recordings(self):
+        self.svdrp.connect()
+        self.svdrp.send_cmd("LSTC")
+        return self.svdrp.get_response()[1:]
+
 
     @staticmethod
     def _check_timer_recording_flag(timer_info, flag):
