@@ -95,6 +95,15 @@ pip install pyvdr/dist/pyvdr-0.1-py3-none-any.whl --upgrade
 python -m twine upload dist/*
 ```
 
+```
+netcat -w 10 vdr.local 6419 <<EOF
+chan
+quit
+EOF
+220 easyVDR SVDRP VideoDiskRecorder 2.2.0; Sun Sep  1 15:27:23 2019; UTF-8
+250 66 Disney SD
+221 easyVDR closing connection
+```
 
 ## Resources
 Create a python module https://dzone.com/articles/executable-package-pip-install

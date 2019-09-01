@@ -7,7 +7,7 @@ from collections import namedtuple
 EPG_DATA_RECORD = '215'
 epg_info = namedtuple('EPGDATA', 'Channel Title Description')
 timer_info = namedtuple('TIMER', 'Status Name Date Description')
-channel_info = namedtuple('CHANNEL', 'Number Name')
+#channel_info = namedtuple('CHANNEL', 'Number Name')
 
 FLAG_TIMER_ACTIVE = 1
 FLAG_TIMER_INSTANT_RECORDING = 2
@@ -22,6 +22,9 @@ class PYVDR(object):
         self.svdrp = SVDRP(hostname=self.hostname)
         self.timers = None
 
+    def sensors(self):
+        return ['channel', 'is_recording']
+
     def stat(self):
         self.svdrp.connect()
         self.svdrp.send_cmd("STAT DISK")
@@ -35,8 +38,11 @@ class PYVDR(object):
                disk_stat_parts.group(2), \
                disk_stat_parts.group(3)
 
-    def get_channel_info(self):
+    def get_channel(self):
         self.svdrp.connect()
+        if not self.svdrp.is_connected():
+            return None
+
         self.svdrp.send_cmd("CHAN")
         generic_response = self.svdrp.get_response()[-1]
         channel = self._parse_channel_response(generic_response)
@@ -48,7 +54,7 @@ class PYVDR(object):
         chan = self.svdrp.get_response()[-1]
         channel = self._parse_channel_response(chan)
 
-        self.svdrp.send_cmd("LSTE {} now".format(channel.Number))
+        self.svdrp.send_cmd("LSTE {} now".format(channel.number))
         epg_data = self.svdrp.get_response()[1:]
         for d in epg_data:
             if d[0] == EPG_DATA_RECORD:
@@ -84,26 +90,25 @@ class PYVDR(object):
         self.svdrp.send_cmd("LSTC")
         return self.svdrp.get_response()[1:]
 
-    def get_channel(self):
-        self.svdrp.connect()
-        self.svdrp.send_cmd("CHAN")
-        current_channel = self.svdrp.get_response()[-1]
-        return current_channel[2]
 
     @staticmethod
     def _parse_channel_response(channel_data):
         #print(channel_data[2])
         channel_parts = re.match(r'^(\d*)\s(.*)$', channel_data[2], re.M | re.I)
-        return channel_info(Number=channel_parts.group(1), Name=channel_parts.group(2))
+        channel_info = {}
+        channel_info.update({'number': channel_parts.group(1)})
+        channel_info.update({'name': channel_parts.group(2)})
+        return channel_info
 
     @staticmethod
     def _parse_timer_response(response):
         timer_attr = response.Value.split(':')
+        print(response.Value)
         # print(timer_attr)
         # print(timer_attr[0])
         # print(timer_attr[0][-1])
         # print(timer_attr[1])
-        # print(timer_attr[2])
+        # print(timer_attr[2])250
         # print(timer_attr[3])
         # print(timer_attr[7].split('~')[0])
         # print(timer_attr[7].split('~')[1])
@@ -126,6 +131,9 @@ class PYVDR(object):
 
     def is_recording(self):
         self.svdrp.connect()
+        if not self.svdrp.is_connected():
+            return None
+
         self.svdrp.send_cmd("LSTT")
         responses = self.svdrp.get_response()
         for response in responses:
@@ -155,3 +163,9 @@ class PYVDR(object):
 
     def mypyvdr(self):
         return (u'blubb')
+
+if __name__ == "__main__":
+    pyvdr = PYVDR('easyvdr.fritz.box')
+    print(pyvdr.get_channel())
+    print(pyvdr.get_channel_info())
+

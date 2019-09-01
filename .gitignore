@@ -3,3 +3,7 @@ venv/
 build/
 dist/
 *.egg*
+.pytest_cache/
+.vscode/
+pyvdr/__pycache__/
+test/__pycache__/

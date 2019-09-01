@@ -25,10 +25,21 @@ class SVDRP(object):
                 self.socket = socket.create_connection((self.hostname, self.port), timeout=10)
                 self.socket_file = self.socket.makefile('r')
             except socket.error as se:
-                print('Unable to connect. {}'.format(se))
+                print('Unable to connect. Not powered on? {}'.format(se))
+
+    def is_connected(self):
+        return self.socket is not None
+
+    def disconnect(self):
+        if self.socket is not None:
+            self.send_cmd("quit")
+            self.socket_file.close()
+            self.socket.close()
+        
+        self.responses = None
 
     def send_cmd(self, cmd):
-        if self.socket is None:
+        if not self.is_connected:
             return
 
         cmd += '\r\n'
@@ -73,7 +84,7 @@ class SVDRP(object):
     :return List of Namedtuple (Code, Separator, Value)
     """
     def get_response(self, single_line=False):
-        if self.socket is None:
+        if not self.is_connected:
             return SVDRP_EMPTY_RESPONSE
 
         self._read_response()
