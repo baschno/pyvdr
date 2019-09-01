@@ -46,6 +46,7 @@ class PYVDR(object):
         self.svdrp.send_cmd("CHAN")
         generic_response = self.svdrp.get_response()[-1]
         channel = self._parse_channel_response(generic_response)
+        self.svdrp.disconnect()
         return channel
 
     def get_channel_epg_info(self):
@@ -128,7 +129,6 @@ class PYVDR(object):
                 continue
             timers.append(self._parse_timer_response(response))
 
-
     def is_recording(self):
         self.svdrp.connect()
         if not self.svdrp.is_connected():
@@ -145,6 +145,7 @@ class PYVDR(object):
             if self._check_timer_recording_flag(timer, FLAG_TIMER_INSTANT_RECORDING):
                 return timer
 
+        self.svdrp.disconnect()
         return None
 
     @staticmethod
