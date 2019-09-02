@@ -82,15 +82,17 @@ Those flags are bit-representations in the timers' status field.
 ## Module lifecycle
 ### Build module
 ```
-python setup.py bdist_wheel
+python3 setup.py sdist bdist_wheel
 ```
 
 ### Install module
+To manually install:
 ```
-pip install pyvdr/dist/pyvdr-0.1-py3-none-any.whl --upgrade
+pip install pyvdr/dist/pyvdr-0.1.2-py3-none-any.whl --upgrade
 ```
 
 ### Upload
+After setup of an configuration file `~/.pypirc`:
 ```
 python -m twine upload dist/*
 ```
