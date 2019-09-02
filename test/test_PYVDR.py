@@ -20,10 +20,14 @@ class TestPYVDR(unittest.TestCase):
         self.assertEqual(chan_prosieben['name'], "Pro Sieben")
 
     def test__check_timer_recording_flag(self):
-        t_active = pyvdr.timer_info(Status=1, Name="Test1", Description="Description1", Date="2018-08-01")
-        t_inactive = pyvdr.timer_info(Status=1, Name="Test1", Description="Description1", Date="2018-08-01")
-        t_active_and_recording = pyvdr.timer_info(Status=9, Name="t_active_and_recording", Description="Description1", Date="2018-08-01")
-        t_active_and_instant_recording = pyvdr.timer_info(Status=11, Name="t_active_and_instantrecording", Description="Description1", Date="2018-08-01")
+        t_active = {}
+        t_inactive = {}
+        t_active_and_recording = {}
+        t_active_and_instant_recording = {}
+        t_active.update({'status': 1, 'name': "Test1", 'description': "Description1", 'date': "2018-08-01"})
+        t_inactive.update({'status': 1, 'name':"Test1", 'description':"Description1", 'date':"2018-08-01"})
+        t_active_and_recording.update({'status':9, 'name':"t_active_and_recording", 'description':"Description1", 'date':"2018-08-01"})
+        t_active_and_instant_recording.update({'status':11, 'name':"t_active_and_instantrecording", 'description':"Description1", 'date':"2018-08-01"})
 
         # timer active, not yet recording
         self.assertTrue(self.func._check_timer_recording_flag(t_active, pyvdr.FLAG_TIMER_ACTIVE), "Timer should be active")
