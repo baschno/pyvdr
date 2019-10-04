@@ -2,11 +2,13 @@
 
 import re
 import socket
-import sys
+import logging
 from collections import namedtuple
 
 response_data = namedtuple('ResponseData', 'Code Separator Value')
 SVDRP_EMPTY_RESPONSE = ""
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class SVDRP(object):
@@ -25,7 +27,7 @@ class SVDRP(object):
                 self.socket = socket.create_connection((self.hostname, self.port), timeout=10)
                 self.socket_file = self.socket.makefile('r')
             except socket.error as se:
-                print('Unable to connect. Not powered on? {}'.format(se))
+                _LOGGER.info('Unable to connect. Not powered on? {}'.format(se))
 
     def is_connected(self):
         return self.socket is not None
