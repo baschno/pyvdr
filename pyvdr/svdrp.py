@@ -14,9 +14,10 @@ _LOGGER = logging.getLogger(__name__)
 class SVDRP(object):
     SVDRP_STATUS_OK = '250'
 
-    def __init__(self, hostname='localhost', port=6419):
+    def __init__(self, hostname='localhost', port=6419, timeout=10):
         self.hostname = hostname
         self.port = port
+        self.timeout = timeout
         self.socket = None
         self.socket_file = None
         self.responses = []
@@ -24,7 +25,7 @@ class SVDRP(object):
     def connect(self):
         if self.socket is None:
             try:
-                self.socket = socket.create_connection((self.hostname, self.port), timeout=10)
+                self.socket = socket.create_connection((self.hostname, self.port), timeout=self.timeout)
                 self.socket_file = self.socket.makefile('r')
             except socket.error as se:
                 _LOGGER.info('Unable to connect. Not powered on? {}'.format(se))

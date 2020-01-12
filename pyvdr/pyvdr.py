@@ -17,13 +17,13 @@ FLAG_TIMER_RECORDING = 8
 
 class PYVDR(object):
 
-    def __init__(self, hostname='localhost'):
+    def __init__(self, hostname='localhost', timeout=10):
         self.hostname = hostname
-        self.svdrp = SVDRP(hostname=self.hostname)
+        self.svdrp = SVDRP(hostname=self.hostname, timeout=timeout)
         self.timers = None
 
     def sensors(self):
-        return ['channel', 'is_recording']
+        return ['Vdrinfo']
 
     def stat(self):
         self.svdrp.connect()
@@ -33,10 +33,16 @@ class PYVDR(object):
         if disk_stat_response.Code != SVDRP.SVDRP_STATUS_OK:
             return -1
 
-        disk_stat_parts = re.match(r'(\d*)\w. (\d*)\w. (\d*)', disk_stat_response.Value, re.M | re.I)
-        return disk_stat_parts.group(1), \
-               disk_stat_parts.group(2), \
-               disk_stat_parts.group(3)
+        disk_stat_parts = re.match(
+            r'(\d*)\w. (\d*)\w. (\d*)', 
+            disk_stat_response.Value, re.M | re.I)
+
+        if disk_stat_parts:
+            return [disk_stat_parts.group(1),
+                disk_stat_parts.group(2),
+                disk_stat_parts.group(3)]
+        else:
+            return None
 
     def get_channel(self):
         self.svdrp.connect()
