@@ -107,8 +107,10 @@ class PYVDR(object):
             timer = self._parse_timer_response(response)
             if self._check_timer_recording_flag(timer, FLAG_TIMER_INSTANT_RECORDING):
                 timer['instant'] = True
+                self.svdrp.disconnect()
                 return timer
             if self._check_timer_recording_flag(timer, FLAG_TIMER_RECORDING):
+                self.svdrp.disconnect()
                 return timer
 
         self.svdrp.disconnect()
