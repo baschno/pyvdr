@@ -43,7 +43,7 @@ class SVDRP(object):
         self.socket = None
 
     def send_cmd(self, cmd):
-        if not self.is_connected:
+        if not self.is_connected():
             return
 
         cmd += '\r\n'
@@ -88,7 +88,7 @@ class SVDRP(object):
     :return List of Namedtuple (Code, Separator, Value)
     """
     def get_response(self, single_line=False):
-        if not self.is_connected:
+        if not self.is_connected():
             return SVDRP_EMPTY_RESPONSE
 
         self._read_response()
