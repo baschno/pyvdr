@@ -93,6 +93,7 @@ class PYVDR(object):
             if response.Code != '250':
                 continue
             timers.append(self._parse_timer_response(response))
+        return timers
 
     def is_recording(self):
         self.svdrp.connect()
@@ -155,7 +156,7 @@ class PYVDR(object):
 
     def list_recordings(self):
         self.svdrp.connect()
-        self.svdrp.send_cmd("LSTC")
+        self.svdrp.send_cmd("LSTR")
         return self.svdrp.get_response()[1:]
 
 
