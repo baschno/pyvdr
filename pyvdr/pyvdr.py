@@ -67,21 +67,18 @@ class PYVDR(object):
 
     @staticmethod
     def _parse_timer_response(response):
-        timer_attr = response.Value.split(':')
-        # print(timer_attr)
-        # print(timer_attr[0])
-        # print(timer_attr[0][-1])
-        # print(timer_attr[1])
-        # print(timer_attr[2])250
-        # print(timer_attr[3])
-        # print(timer_attr[7].split('~')[0])
-        # print(timer_attr[7].split('~')[1])
         timer_info = {}
-        timer_info['status'] = timer_attr[0].split(' ')[1]
-        timer_info['date'] = timer_attr[2]
-        timer_info['name'] = timer_attr[7].split('~')[0]
-        timer_info['description'] = ""
-        timer_info['instant'] = False
+
+        # Value='7 1:7:2020-03-16:1858:2025:50:99:Das perfekte Verbrechen~2020.03.16-19|00-Mo:<epgsearch><channel>7 - VOX</channel><searchtimer>das perfekte dinner</searchtimer><start>1584381480</start><stop>1584386700</stop><s-id>0</s-id><eventid>7022</eventid></epgsearch>')
+        timer_parts = re.match(r'^(\d) (\d):(\d):(\d{4}-\d{2}-\d{2}):(\d{4}):(\d{4}):(\d+):(\d+):(.*)\~', response.Value, re.M | re.I)
+
+        if timer_parts:
+            timer_info['status'] = timer_parts.group(1)
+            timer_info['date'] = timer_parts.group(4)
+            timer_info['name'] = timer_parts.group(9)
+            timer_info['description'] = ""
+            timer_info['instant'] = False
+
         return timer_info
 
     def get_timers(self):
