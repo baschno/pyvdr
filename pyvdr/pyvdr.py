@@ -34,13 +34,13 @@ class PYVDR(object):
             return -1
 
         disk_stat_parts = re.match(
-            r'(\d*)\w. (\d*)\w. (\d*)', 
+            r'(\d*)\w. (\d*)\w. (\d*)',
             disk_stat_response.Value, re.M | re.I)
 
         if disk_stat_parts:
             return [disk_stat_parts.group(1),
-                disk_stat_parts.group(2),
-                disk_stat_parts.group(3)]
+                    disk_stat_parts.group(2),
+                    disk_stat_parts.group(3)]
         else:
             return None
 
@@ -55,14 +55,17 @@ class PYVDR(object):
         self.svdrp.disconnect()
         return channel
 
-
     @staticmethod
     def _parse_channel_response(channel_data):
-        #print(channel_data[2])
-        channel_parts = re.match(r'^(\d*)\s(.*)$', channel_data[2], re.M | re.I)
         channel_info = {}
-        channel_info.update({'number': channel_parts.group(1)})
-        channel_info.update({'name': channel_parts.group(2)})
+
+        channel_parts = re.match(
+            r'^(\d*)\s(.*)$',
+            channel_data[2],
+            re.M | re.I)
+        if channel_parts:
+            channel_info['number'] = channel_parts.group(1)
+            channel_info['name'] = channel_parts.group(2)
         return channel_info
 
     @staticmethod
@@ -139,7 +142,9 @@ class PYVDR(object):
                         epg_description = epg_field_value
 
         return channel, \
-               epg_info(Channel=epg_channel, Title=epg_title, Description=epg_description)
+               epg_info(Channel=epg_channel,
+                        Title=epg_title,
+                        Description=epg_description)
 
     def channel_up(self):
         self.svdrp.connect()
