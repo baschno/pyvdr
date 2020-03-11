@@ -70,19 +70,22 @@ class PYVDR(object):
 
     @staticmethod
     def _parse_timer_response(response):
-        timer_info = {}
+        timer = {}
+        m = re.match(
+            r'^(\d) (\d):(\d):(\d{4}-\d{2}-\d{2}):(\d{4}):(\d{4}):(\d+):(\d+):(.*):(.*)$',
+            response.Value,
+            re.M | re.I)
 
-        # Value='7 1:7:2020-03-16:1858:2025:50:99:Das perfekte Verbrechen~2020.03.16-19|00-Mo:<epgsearch><channel>7 - VOX</channel><searchtimer>das perfekte dinner</searchtimer><start>1584381480</start><stop>1584386700</stop><s-id>0</s-id><eventid>7022</eventid></epgsearch>')
-        timer_parts = re.match(r'^(\d) (\d):(\d):(\d{4}-\d{2}-\d{2}):(\d{4}):(\d{4}):(\d+):(\d+):(.*)\~', response.Value, re.M | re.I)
+        if m:
+            timer['status'] = m.group(2)
+            timer['channel'] = m.group(3)
+            timer['date'] = m.group(4)
+            timer['name'] = m.group(9)
+            timer['description'] = ""
+            timer['series'] = timer['name'].find('~') != -1
+            timer['instant'] = False
 
-        if timer_parts:
-            timer_info['status'] = timer_parts.group(1)
-            timer_info['date'] = timer_parts.group(4)
-            timer_info['name'] = timer_parts.group(9)
-            timer_info['description'] = ""
-            timer_info['instant'] = False
-
-        return timer_info
+        return timer
 
     def get_timers(self):
         timers = []
@@ -161,7 +164,6 @@ class PYVDR(object):
         self.svdrp.send_cmd("LSTR")
         return self.svdrp.get_response()[1:]
 
-
     @staticmethod
     def _check_timer_recording_flag(timer_info, flag):
         timer_status = timer_info['status']
@@ -179,5 +181,3 @@ class PYVDR(object):
 
     def mypyvdr(self):
         return (u'blubb')
-
-
