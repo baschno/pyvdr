@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='pyvdr',
-      version='0.2.0',
+      version='0.2.1',
       description='Python library for accessing a Linux VDR via SVDRP',
       long_description=long_description,
       long_description_content_type="text/markdown",
