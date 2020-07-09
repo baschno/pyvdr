@@ -36,7 +36,7 @@ class PYVDR(object):
         disk_stat_parts = re.match(
             r'(\d*)\w. (\d*)\w. (\d*)',
             disk_stat_response.Value, re.M | re.I)
-
+        self.svdrp.disconnect()
         if disk_stat_parts:
             return [disk_stat_parts.group(1),
                     disk_stat_parts.group(2),
@@ -72,7 +72,7 @@ class PYVDR(object):
     def _parse_timer_response(response):
         timer = {}
         m = re.match(
-            r'^(\d) (\d):(\d):(\d{4}-\d{2}-\d{2}):(\d{4}):(\d{4}):(\d+):(\d+):(.*):(.*)$',
+            r'^(\d) (\d{1,2}):(\d):(\d{4}-\d{2}-\d{2}):(\d{4}):(\d{4}):(\d+):(\d+):(.*):(.*)$',
             response.Value,
             re.M | re.I)
 
@@ -92,6 +92,7 @@ class PYVDR(object):
         self.svdrp.connect()
         self.svdrp.send_cmd("LSTT")
         responses = self.svdrp.get_response()
+        self.svdrp.disconnect()
         for response in responses:
             if response.Code != '250':
                 continue
@@ -109,15 +110,13 @@ class PYVDR(object):
             if response.Code != '250':
                 continue
             timer = self._parse_timer_response(response)
+            self.svdrp.disconnect()
             if self._check_timer_recording_flag(timer, FLAG_TIMER_INSTANT_RECORDING):
                 timer['instant'] = True
-                self.svdrp.disconnect()
                 return timer
             if self._check_timer_recording_flag(timer, FLAG_TIMER_RECORDING):
-                self.svdrp.disconnect()
                 return timer
 
-        self.svdrp.disconnect()
         return None
 
     def get_channel_epg_info(self):
