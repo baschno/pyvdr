@@ -72,7 +72,7 @@ class PYVDR(object):
     def _parse_timer_response(response):
         timer = {}
         m = re.match(
-            r'^(\d) (\d):(\d):(\d{4}-\d{2}-\d{2}):(\d{4}):(\d{4}):(\d+):(\d+):(.*):(.*)$',
+            r'^(\d) (\d{1,2}):(\d):(\d{4}-\d{2}-\d{2}):(\d{4}):(\d{4}):(\d+):(\d+):(.*):(.*)$',
             response.Value,
             re.M | re.I)
 
