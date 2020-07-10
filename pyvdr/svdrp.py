@@ -38,7 +38,7 @@ class SVDRP(object):
             self.send_cmd("quit")
             self.socket_file.close()
             self.socket.close()
-        
+
         self.responses = []
         self.socket = None
 
@@ -79,11 +79,11 @@ class SVDRP(object):
     """
     def get_response_as_text(self):
         self._read_response()
-        print("".join(str(self.responses)))
+        return "".join(str(self.responses))
 
     """
     Gets the response of the latest CMD as data structure
-    By default returns a list, if single line set to true it will just return the 
+    By default returns a list, if single line set to true it will just return the
     1st state line.
     :return List of Namedtuple (Code, Separator, Value)
     """
