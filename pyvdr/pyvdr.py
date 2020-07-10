@@ -124,18 +124,16 @@ class PYVDR(object):
         self.svdrp.send_cmd("CHAN")
         chan = self.svdrp.get_response()[-1]
         channel = self._parse_channel_response(chan)
-
-        self.svdrp.send_cmd("LSTE {} now".format(channel.number))
+        self.svdrp.send_cmd("LSTE {} now".format(channel['number']))
         epg_data = self.svdrp.get_response()[1:]
+        self.svdrp.disconnect()
         for d in epg_data:
             if d[0] == EPG_DATA_RECORD:
-                print(d[2])
                 epg = re.match(r'^(\S)\s(.*)$', d[2], re.M | re.I)
                 if epg is not None:
                     epg_field_type = epg.group(1)
                     epg_field_value = epg.group(2)
 
-                    print(epg_field_type)
                     if epg_field_type == 'T':
                         epg_title = epg_field_value
                     if epg_field_type == 'C':
@@ -151,12 +149,16 @@ class PYVDR(object):
     def channel_up(self):
         self.svdrp.connect()
         self.svdrp.send_cmd("CHAN +")
-        return self.svdrp.get_response_text()
+        reponse_text = self.svdrp.get_response_as_text()
+        self.svdrp.disconnect()
+        return reponse_text
 
     def channel_down(self):
         self.svdrp.connect()
         self.svdrp.send_cmd("CHAN -")
-        return self.svdrp.get_response_text()
+        reponse_text = self.svdrp.get_response_as_text()
+        self.svdrp.disconnect()
+        return reponse_text
 
     def list_recordings(self):
         self.svdrp.connect()
