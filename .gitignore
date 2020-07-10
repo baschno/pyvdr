@@ -1,10 +1,11 @@
 venv/
 .idea/
 build/
-dist/
+dist*/
 *.egg*
 .pytest_cache/
 .vscode/
 pyvdr/__pycache__/
 test/__pycache__/.cache
 .cache/
+*.pyc
