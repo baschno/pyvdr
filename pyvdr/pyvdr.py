@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from .svdrp import SVDRP
+import logging
 import re
 from collections import namedtuple
 
@@ -14,6 +15,8 @@ FLAG_TIMER_INSTANT_RECORDING = 2
 FLAG_TIMER_VPS = 4
 FLAG_TIMER_RECORDING = 8
 
+
+_LOGGER = logging.getLogger(__name__)
 
 class PYVDR(object):
 
@@ -72,7 +75,7 @@ class PYVDR(object):
     def _parse_timer_response(response):
         timer = {}
         m = re.match(
-            r'^(\d) (\d{1,2}):(\d):(\d{4}-\d{2}-\d{2}):(\d{4}):(\d{4}):(\d+):(\d+):(.*):(.*)$',
+            r'^(\d) (\d{1,2}):(\d{1,2}):(\d{4}-\d{2}-\d{2}):(\d{4}):(\d{4}):(\d+):(\d+):(.*):(.*)$',
             response.Value,
             re.M | re.I)
 
@@ -84,6 +87,9 @@ class PYVDR(object):
             timer['description'] = ""
             timer['series'] = timer['name'].find('~') != -1
             timer['instant'] = False
+            _LOGGER.debug("Parsed timer: {}".format(timer))
+        else:
+            _LOGGER.debug("You might want to check the regex for timer parsing?! {}".format(response))
 
         return timer
 
@@ -111,6 +117,9 @@ class PYVDR(object):
                 continue
             timer = self._parse_timer_response(response)
             self.svdrp.disconnect()
+            if len(timer) <= 0:
+                _LOGGER.debug("No output from timer parsing.")
+                return None
             if self._check_timer_recording_flag(timer, FLAG_TIMER_INSTANT_RECORDING):
                 timer['instant'] = True
                 return timer
