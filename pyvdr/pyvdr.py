@@ -7,8 +7,8 @@ from collections import namedtuple
 
 EPG_DATA_RECORD = '215'
 epg_info = namedtuple('EPGDATA', 'Channel Title Description')
-#timer_info = namedtuple('TIMER', 'Status Name Date Description')
-#channel_info = namedtuple('CHANNEL', 'Number Name')
+# timer_info = namedtuple('TIMER', 'Status Name Date Description')
+# channel_info = namedtuple('CHANNEL', 'Number Name')
 
 FLAG_TIMER_ACTIVE = 1
 FLAG_TIMER_INSTANT_RECORDING = 2
@@ -17,6 +17,7 @@ FLAG_TIMER_RECORDING = 8
 
 
 _LOGGER = logging.getLogger(__name__)
+
 
 class PYVDR(object):
 
@@ -150,10 +151,10 @@ class PYVDR(object):
                     if epg_field_type == 'D':
                         epg_description = epg_field_value
 
-        return channel, \
-               epg_info(Channel=epg_channel,
-                        Title=epg_title,
-                        Description=epg_description)
+        return channel, epg_info(
+            Channel=epg_channel,
+            Title=epg_title,
+            Description=epg_description)
 
     def channel_up(self):
         self.svdrp.connect()
