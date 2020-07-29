@@ -78,6 +78,10 @@ Flags in timer definition
 ```
 Those flags are bit-representations in the timers' status field.
 
+## Test
+```
+python -m unittest discover -v
+```
 
 ## Module lifecycle
 ### Build module
