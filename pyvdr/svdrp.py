@@ -25,6 +25,7 @@ class SVDRP(object):
     def connect(self):
         if self.socket is None:
             try:
+                _LOGGER.debug("Setting up connection to {}".format(self.hostname))
                 self.socket = socket.create_connection((self.hostname, self.port), timeout=self.timeout)
                 self.socket_file = self.socket.makefile('r')
             except socket.error as se:
@@ -34,6 +35,7 @@ class SVDRP(object):
         return self.socket is not None
 
     def disconnect(self):
+        _LOGGER.debug("Closing communication with server.")
         if self.socket is not None:
             self.send_cmd("quit")
             self.socket_file.close()
@@ -43,6 +45,7 @@ class SVDRP(object):
         self.socket = None
 
     def send_cmd(self, cmd):
+        _LOGGER.debug("Send cmd: {}".format(cmd))
         if not self.is_connected():
             return
 
@@ -51,7 +54,11 @@ class SVDRP(object):
         if isinstance(cmd, str):
             cmd = cmd.encode("utf-8")
 
-        self.socket.sendall(cmd)
+        try:
+            self.socket.sendall(cmd)
+        except IOError as e:
+            _LOGGER.debug("IOError e {}, closing connection".format(e))
+            self.socket.close()
 
     def _parse_response(self, resp):
         # <Reply code:3><-|Space><Text><Newline>
@@ -93,8 +100,10 @@ class SVDRP(object):
 
         self._read_response()
         if single_line:
+            _LOGGER.debug("Returning single item")
             return self.responses[2]
         else:
+            _LOGGER.debug("Returning {} items".format(len(self.responses)))
             return self.responses
 
     def shutdown(self):
