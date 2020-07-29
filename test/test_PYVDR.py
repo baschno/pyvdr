@@ -70,20 +70,25 @@ class TestPYVDR(unittest.TestCase):
         self.assertTrue(self.func._check_timer_recording_flag(t_active_and_instant_recording, pyvdr.FLAG_TIMER_RECORDING), "Timer recording")
         self.assertTrue(self.func._check_timer_recording_flag(t_active_and_instant_recording, pyvdr.FLAG_TIMER_INSTANT_RECORDING), "Timer instant recording")
 
-    def test__parse_searchtimer_response(self):
-        response = response_data(
-            "250",
-            "-",
-            "3 1:7:2020-07-13:1858:2025:50:99:Das perfekte Dinner~2020.07.13-19|00-Mo:<epgsearch><channel>7 - VOX</channel><searchtimer>das perfekte dinner</searchtimer><start>1594659480</start><stop>1594664700</stop><s-id>0</s-id><eventid>4572</eventid></epgsearch>"
-        )
-        response2 = response_data(
-            "250",
-            "-",
-            "3 1:17:2020-07-31:0243:0345:50:99:Bad Banks~Ein halbes Jahr ist seit dem Crash der DGI-Bank vergangen. Gabriel Fenger befindet sich noch immer in U-Haft.:<epgsearch><channel>17 - ZDF_neo HD</channel><searchtimer>Bad Banks</searchtimer><start>1596156180</start><stop>1596159900</stop><s-id>8</s-id><eventid>4357</eventid></epgsearch>"
-        )
-        timer = self.func._parse_timer_response(response)
-        self.assertEqual(
-            timer,
+    def test__parse_timer_responses(self):
+        parseable_responses = [
+            response_data(
+                "250",
+                "-",
+                "3 1:7:2020-07-13:1858:2025:50:99:Das perfekte Dinner~2020.07.13-19|00-Mo:<epgsearch><channel>7 - VOX</channel><searchtimer>das perfekte dinner</searchtimer><start>1594659480</start><stop>1594664700</stop><s-id>0</s-id><eventid>4572</eventid></epgsearch>"
+            ),
+            response_data(
+                "250",
+                "-",
+                "3 1:17:2020-07-31:0243:0345:50:99:Bad Banks~Ein halbes Jahr ist seit dem Crash der DGI-Bank vergangen. Gabriel Fenger befindet sich noch immer in U-Haft.:<epgsearch><channel>17 - ZDF_neo HD</channel><searchtimer>Bad Banks</searchtimer><start>1596156180</start><stop>1596159900</stop><s-id>8</s-id><eventid>4357</eventid></epgsearch>"
+            ),
+            response_data(
+                "250",
+                "-",
+                "4 11:1:2020-07-08:2215:0145:50:99:@Tagesthemen mit Wetter:"
+            )
+        ]
+        expected_parsed_timers = [
             {
                 'status': '1',
                 'channel': '7',
@@ -92,11 +97,7 @@ class TestPYVDR(unittest.TestCase):
                 'description': '',
                 'series': True,
                 'instant': False
-            }
-        )
-        timer = self.func._parse_timer_response(response2)
-        self.assertEqual(
-            timer,
+            },
             {
                 'status': '1',
                 'channel': '17',
@@ -105,19 +106,7 @@ class TestPYVDR(unittest.TestCase):
                 'description': '',
                 'series': True,
                 'instant': False
-            }
-        )
-
-    def test__parse_instanttimer_response(self):
-        response = response_data(
-            "250",
-            "-",
-            "4 11:1:2020-07-08:2215:0145:50:99:@Tagesthemen mit Wetter:"
-        )
-        timer = self.func._parse_timer_response(response)
-
-        self.assertEqual(
-            timer,
+            },
             {
                 'status': '11',
                 'channel': '1',
@@ -127,7 +116,14 @@ class TestPYVDR(unittest.TestCase):
                 'series': False,
                 'instant': False
             }
-        )
+        ]
+
+        for i in range(len(parseable_responses)):
+            timer = self.func._parse_timer_response(parseable_responses[i])
+            self.assertEqual(
+                timer,
+                expected_parsed_timers[i]
+            )
 
 
 if __name__ == '__main__':
