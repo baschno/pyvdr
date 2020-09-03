@@ -58,17 +58,44 @@ class TestPYVDR(unittest.TestCase):
             })
 
         # timer active, not yet recording
-        self.assertTrue(self.func._check_timer_recording_flag(t_active, pyvdr.FLAG_TIMER_ACTIVE), "Timer should be active")
-        self.assertFalse(self.func._check_timer_recording_flag(t_active, pyvdr.FLAG_TIMER_RECORDING), "Timer should not be recording")
+        self.assertTrue(
+            self.func._check_timer_recording_flag(
+                t_active,
+                pyvdr.FLAG_TIMER_ACTIVE
+            ), "Timer should be active")
+        self.assertFalse(
+            self.func._check_timer_recording_flag(
+                t_active,
+                pyvdr.FLAG_TIMER_RECORDING
+            ), "Timer should not be recording")
 
         # timer active, recording
-        self.assertTrue(self.func._check_timer_recording_flag(t_active_and_recording, pyvdr.FLAG_TIMER_ACTIVE), "Timer should be active")
-        self.assertTrue(self.func._check_timer_recording_flag(t_active_and_recording, pyvdr.FLAG_TIMER_RECORDING), "Timer should be recording")
+        self.assertTrue(
+            self.func._check_timer_recording_flag(
+                t_active_and_recording,
+                pyvdr.FLAG_TIMER_ACTIVE
+            ), "Timer should be active")
+        self.assertTrue(
+            self.func._check_timer_recording_flag(
+                t_active_and_recording,
+                pyvdr.FLAG_TIMER_RECORDING
+            ), "Timer should be recording")
 
         # instant recording
-        self.assertTrue(self.func._check_timer_recording_flag(t_active_and_instant_recording, pyvdr.FLAG_TIMER_RECORDING), "Timer active")
-        self.assertTrue(self.func._check_timer_recording_flag(t_active_and_instant_recording, pyvdr.FLAG_TIMER_RECORDING), "Timer recording")
-        self.assertTrue(self.func._check_timer_recording_flag(t_active_and_instant_recording, pyvdr.FLAG_TIMER_INSTANT_RECORDING), "Timer instant recording")
+        self.assertTrue(
+            self.func._check_timer_recording_flag(
+                t_active_and_instant_recording,
+                pyvdr.FLAG_TIMER_RECORDING
+            ), "Timer active")
+        self.assertTrue(
+        self.func._check_timer_recording_flag(
+            t_active_and_instant_recording,
+            pyvdr.FLAG_TIMER_RECORDING
+        ), "Timer recording")
+        self.assertTrue(
+            self.func._check_timer_recording_flag(
+                t_active_and_instant_recording, pyvdr.FLAG_TIMER_INSTANT_RECORDING
+        ), "Timer instant recording")
 
     def test__parse_timer_responses(self):
         parseable_responses = [
