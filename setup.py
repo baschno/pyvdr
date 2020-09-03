@@ -15,4 +15,4 @@ setup(name='pyvdr',
       packages=['pyvdr'],
       zip_safe=False,
       python_requires='>=3.6',
-)
+     )

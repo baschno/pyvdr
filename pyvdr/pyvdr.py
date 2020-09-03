@@ -26,9 +26,6 @@ class PYVDR(object):
         self.svdrp = SVDRP(hostname=self.hostname, timeout=timeout)
         self.timers = None
 
-    def sensors(self):
-        return ['Vdrinfo']
-
     def stat(self):
         self.svdrp.connect()
         self.svdrp.send_cmd("STAT DISK")
