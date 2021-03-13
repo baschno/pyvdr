@@ -5,6 +5,9 @@ import logging
 import re
 from collections import namedtuple
 
+SVDRP_CMD_LIST_TIMERS = "LSTT"
+SVDRP_CMD_CHANNEL = "CHAN"
+
 EPG_DATA_RECORD = '215'
 epg_info = namedtuple('EPGDATA', 'Channel Title Description')
 # timer_info = namedtuple('TIMER', 'Status Name Date Description')
@@ -45,19 +48,25 @@ class PYVDR(object):
         else:
             return None
 
+    """
+    Gets the channel info and returns the channel number and the channel name.
+    """
     def get_channel(self):
         self.svdrp.connect()
-        if not self.svdrp.is_connected():
+        self.svdrp.send_cmd(SVDRP_CMD_CHANNEL)
+        responses = self.svdrp.get_response()
+        _LOGGER.debug("Response of get channel cmd: '%s'" % responses)
+        if len(responses) < 1:
             return None
-
-        self.svdrp.send_cmd("CHAN")
-        generic_response = self.svdrp.get_response()[-1]
+        # get 2nd element (1. welcome, 2. response, 3. quit msg)
+        generic_response = responses[-2]
         channel = self._parse_channel_response(generic_response)
-        self.svdrp.disconnect()
+        #_LOGGER.debug("Returned Chan: '%s'" % channel)
         return channel
 
     @staticmethod
     def _parse_channel_response(channel_data):
+        _LOGGER.debug("Parsing Channel response to fields: %s" % channel_data.Value)
         channel_info = {}
 
         channel_parts = re.match(
@@ -94,9 +103,8 @@ class PYVDR(object):
     def get_timers(self):
         timers = []
         self.svdrp.connect()
-        self.svdrp.send_cmd("LSTT")
+        self.svdrp.send_cmd(SVDRP_CMD_LIST_TIMERS)
         responses = self.svdrp.get_response()
-        self.svdrp.disconnect()
         for response in responses:
             if response.Code != '250':
                 continue
@@ -108,7 +116,7 @@ class PYVDR(object):
         if not self.svdrp.is_connected():
             return None
 
-        self.svdrp.send_cmd("LSTT")
+        self.svdrp.send_cmd(SVDRP_CMD_LIST_TIMERS)
         responses = self.svdrp.get_response()
         for response in responses:
             if response.Code != '250':
@@ -170,6 +178,7 @@ class PYVDR(object):
     def list_recordings(self):
         self.svdrp.connect()
         self.svdrp.send_cmd("LSTR")
+        self.svdrp.disconnect()
         return self.svdrp.get_response()[1:]
 
     @staticmethod

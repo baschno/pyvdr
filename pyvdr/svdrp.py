@@ -5,6 +5,8 @@ import socket
 import logging
 from collections import namedtuple
 
+SVDRP_CMD_QUIT = 'quit'
+SVDRP_CMD_LF = '\r\n'
 response_data = namedtuple('ResponseData', 'Code Separator Value')
 SVDRP_EMPTY_RESPONSE = ""
 
@@ -19,7 +21,6 @@ class SVDRP(object):
         self.port = port
         self.timeout = timeout
         self.socket = None
-        self.socket_file = None
         self.responses = []
 
     def connect(self):
@@ -27,40 +28,58 @@ class SVDRP(object):
             try:
                 _LOGGER.debug("Setting up connection to {}".format(self.hostname))
                 self.socket = socket.create_connection((self.hostname, self.port), timeout=self.timeout)
-                self.socket_file = self.socket.makefile('r')
+                self.responses = []
             except socket.error as se:
                 _LOGGER.info('Unable to connect. Not powered on? {}'.format(se))
 
     def is_connected(self):
         return self.socket is not None
 
-    def disconnect(self):
+    def disconnect(self, send_quit=False):
         _LOGGER.debug("Closing communication with server.")
         if self.socket is not None:
-            self.send_cmd("quit")
-            self.socket_file.close()
+            if send_quit:
+                self.socket.sendall(SVDRP_CMD_QUIT.join(SVDRP_CMD_LF).encode())
             self.socket.close()
+            self.socket = None
 
-        self.responses = []
-        self.socket = None
-
-    def send_cmd(self, cmd):
-        _LOGGER.debug("Send cmd: {}".format(cmd))
+    """
+    Sends a SVDRP command to the VDR instance, by default the connection will be created and also be closed at the end.
+    If the connection should be kept open in the end (e.g. for sending multi-commands)
+    the param auto_disconnect needs to be set to False on invoking.
+    The result will be stored in the internal responses array for later content handling.
+    :return void / nothing
+    """
+    def send_cmd(self, cmd, auto_disconnect=True):
         if not self.is_connected():
-            return
+            return None
 
-        cmd += '\r\n'
-
-        if isinstance(cmd, str):
-            cmd = cmd.encode("utf-8")
+        cmds = [cmd]
+        cmds.extend([SVDRP_CMD_QUIT] if auto_disconnect else [])
+        _LOGGER.debug("Send cmds: {}".format(cmds))
 
         try:
-            self.socket.sendall(cmd)
+            data = list()
+            [self.socket.sendall(s.join(SVDRP_CMD_LF).encode()) for s in cmds]
+            while True:
+                data.append(self.socket.recv(32))
+                if not data[-1]:
+                    break
         except IOError as e:
             _LOGGER.debug("IOError e {}, closing connection".format(e))
-            self.socket.close()
 
-    def _parse_response(self, resp):
+        finally:
+            _LOGGER.debug('Decoding data into responses: %s' % data)
+            response_raw = b''.join(data)
+            [self.responses.append(self._parse_response_item(s.decode())) for s in response_raw.splitlines()]
+            if auto_disconnect:
+                _LOGGER.debug("Auto-closing connection.")
+                self.disconnect()
+    """
+    Parses the response from text into data set
+    :return response_data object
+    """
+    def _parse_response_item(self, resp):
         # <Reply code:3><-|Space><Text><Newline>
         matchobj = re.match(r'^(\d{3})(.)(.*)', resp, re.M | re.I)
 
@@ -70,9 +89,10 @@ class SVDRP(object):
     Gets the response from the last CMD and puts it in the internal list.
     :return Namedtuple (Code, Separator, Value)
     """
-    def _read_response(self):
-        for line in self.socket_file:
-            response_entry = self._parse_response(line)
+    def _read_response_(self):
+
+        for line in self.responses:
+            response_entry = self._parse_response_item(line)
             self.responses.append(response_entry)
 
             # The first and last row are separated simply by ' ', other with '-'.
@@ -85,7 +105,6 @@ class SVDRP(object):
     :return response as plain text
     """
     def get_response_as_text(self):
-        self._read_response()
         return "".join(str(self.responses))
 
     """
@@ -98,17 +117,9 @@ class SVDRP(object):
         if not self.is_connected():
             return SVDRP_EMPTY_RESPONSE
 
-        self._read_response()
         if single_line:
             _LOGGER.debug("Returning single item")
             return self.responses[2]
         else:
             _LOGGER.debug("Returning {} items".format(len(self.responses)))
             return self.responses
-
-    def shutdown(self):
-        if self.socket is not None:
-            self.send_cmd("quit")
-            self.socket_file.close()
-            self.socket.close()
-            self.responses = None
