@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
 from .svdrp import SVDRP
+from .svdrp import SVDRP_COMMANDS
 import logging
 import re
 from collections import namedtuple
 
-SVDRP_CMD_LIST_TIMERS = "LSTT"
-SVDRP_CMD_CHANNEL = "CHAN"
 
 EPG_DATA_RECORD = '215'
 epg_info = namedtuple('EPGDATA', 'Channel Title Description')
@@ -30,8 +29,7 @@ class PYVDR(object):
         self.timers = None
 
     def stat(self):
-        self.svdrp.connect()
-        self.svdrp.send_cmd("STAT DISK")
+        self.svdrp.send_cmd(SVDRP_COMMANDS.DISK_INFO)
         disk_stat_response = self.svdrp.get_response()[1:][0]
 
         if disk_stat_response.Code != SVDRP.SVDRP_STATUS_OK:
@@ -40,7 +38,6 @@ class PYVDR(object):
         disk_stat_parts = re.match(
             r'(\d*)\w. (\d*)\w. (\d*)',
             disk_stat_response.Value, re.M | re.I)
-        self.svdrp.disconnect()
         if disk_stat_parts:
             return [disk_stat_parts.group(1),
                     disk_stat_parts.group(2),
@@ -52,8 +49,7 @@ class PYVDR(object):
     Gets the channel info and returns the channel number and the channel name.
     """
     def get_channel(self):
-        self.svdrp.connect()
-        self.svdrp.send_cmd(SVDRP_CMD_CHANNEL)
+        self.svdrp.send_cmd(SVDRP_COMMANDS.GET_CHANNEL)
         responses = self.svdrp.get_response()
         _LOGGER.debug("Response of get channel cmd: '%s'" % responses)
         if len(responses) < 1:
@@ -61,7 +57,7 @@ class PYVDR(object):
         # get 2nd element (1. welcome, 2. response, 3. quit msg)
         generic_response = responses[-2]
         channel = self._parse_channel_response(generic_response)
-        #_LOGGER.debug("Returned Chan: '%s'" % channel)
+        _LOGGER.debug("Returned Chan: '%s'" % channel)
         return channel
 
     @staticmethod
@@ -102,8 +98,7 @@ class PYVDR(object):
 
     def get_timers(self):
         timers = []
-        self.svdrp.connect()
-        self.svdrp.send_cmd(SVDRP_CMD_LIST_TIMERS)
+        self.svdrp.send_cmd(SVDRP_COMMANDS.LIST_TIMERS)
         responses = self.svdrp.get_response()
         for response in responses:
             if response.Code != '250':
@@ -112,17 +107,12 @@ class PYVDR(object):
         return timers
 
     def is_recording(self):
-        self.svdrp.connect()
-        if not self.svdrp.is_connected():
-            return None
-
-        self.svdrp.send_cmd(SVDRP_CMD_LIST_TIMERS)
+        self.svdrp.send_cmd(SVDRP_COMMANDS.LIST_TIMERS)
         responses = self.svdrp.get_response()
         for response in responses:
             if response.Code != '250':
                 continue
             timer = self._parse_timer_response(response)
-            self.svdrp.disconnect()
             if len(timer) <= 0:
                 _LOGGER.debug("No output from timer parsing.")
                 return None
@@ -134,17 +124,13 @@ class PYVDR(object):
 
         return None
 
-    def get_channel_epg_info(self):
-        self.svdrp.connect()
-        self.svdrp.send_cmd("CHAN")
-        chan = self.svdrp.get_response()[-1]
-        channel = self._parse_channel_response(chan)
-        self.svdrp.send_cmd("LSTE {} now".format(channel['number']))
+    def get_channel_epg_info(self, channel_no=1):
+        epg_title = epg_channel = epg_description = None
+        self.svdrp.send_cmd(f"{SVDRP_COMMANDS.LIST_EPG} {channel_no} now")
         epg_data = self.svdrp.get_response()[1:]
-        self.svdrp.disconnect()
-        for d in epg_data:
-            if d[0] == EPG_DATA_RECORD:
-                epg = re.match(r'^(\S)\s(.*)$', d[2], re.M | re.I)
+        for data in epg_data:
+            if data[0] == EPG_DATA_RECORD:
+                epg = re.match(r'^(\S)\s(.*)$', data[2], re.M | re.I)
                 if epg is not None:
                     epg_field_type = epg.group(1)
                     epg_field_value = epg.group(2)
@@ -156,29 +142,23 @@ class PYVDR(object):
                     if epg_field_type == 'D':
                         epg_description = epg_field_value
 
-        return channel, epg_info(
+        return epg_info(
             Channel=epg_channel,
             Title=epg_title,
             Description=epg_description)
 
     def channel_up(self):
-        self.svdrp.connect()
-        self.svdrp.send_cmd("CHAN +")
-        reponse_text = self.svdrp.get_response_as_text()
-        self.svdrp.disconnect()
-        return reponse_text
+        self.svdrp.send_cmd(SVDRP_COMMANDS.CHANNEL_UP)
+        response_text = self.svdrp.get_response_as_text()
+        return response_text
 
     def channel_down(self):
-        self.svdrp.connect()
-        self.svdrp.send_cmd("CHAN -")
-        reponse_text = self.svdrp.get_response_as_text()
-        self.svdrp.disconnect()
-        return reponse_text
+        self.svdrp.send_cmd(SVDRP_COMMANDS.CHANNEL_DOWN)
+        response_text = self.svdrp.get_response_as_text()
+        return response_text
 
     def list_recordings(self):
-        self.svdrp.connect()
-        self.svdrp.send_cmd("LSTR")
-        self.svdrp.disconnect()
+        self.svdrp.send_cmd(SVDRP_COMMANDS.LIST_RECORDINGS)
         return self.svdrp.get_response()[1:]
 
     @staticmethod
@@ -187,14 +167,3 @@ class PYVDR(object):
         if isinstance(timer_status, str):
             return int(timer_status) & flag
         return timer_status & flag
-
-    def test(self):
-        self.svdrp.connect()
-        self.svdrp.send_cmd("LSTE 6 now")
-        return self.svdrp.get_response_text()
-
-    def finish(self):
-        self.svdrp.shutdown()
-
-    def mypyvdr(self):
-        return (u'blubb')
