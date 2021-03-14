@@ -15,11 +15,11 @@ class TestPYVDR(unittest.TestCase):
         )
 
     def test__parse_channel_response(self):
-        chan_ard = self.func._parse_channel_response(["", "", "1 ARD"])
+        chan_ard = self.func._parse_channel_response(response_data("", "", "1 ARD"))
         self.assertEqual(chan_ard['number'], "1")
         self.assertEqual(chan_ard['name'], "ARD")
 
-        chan_prosieben = self.func._parse_channel_response(["", "", "11 Pro Sieben"])
+        chan_prosieben = self.func._parse_channel_response(response_data("", "", "11 Pro Sieben"))
         self.assertEqual(chan_prosieben['number'], "11")
         self.assertEqual(chan_prosieben['name'], "Pro Sieben")
 
