@@ -13,6 +13,7 @@ SVDRP_EMPTY_RESPONSE = ""
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class SVDRP_COMMANDS(str, Enum):
     QUIT = 'quit'
     LIST_TIMERS = "LSTT"
@@ -22,6 +23,12 @@ class SVDRP_COMMANDS(str, Enum):
     LIST_EPG = "LSTE"
     CHANNEL_UP = "CHAN +"
     CHANNEL_DOWN = "CHAN -"
+
+
+class SVDRP_RESULT_CODE(str, Enum):
+    SUCCESS = '250'
+    EPG_DATA_RECORD = '215'
+
 
 class SVDRP(object):
     SVDRP_STATUS_OK = '250'

@@ -2,21 +2,18 @@
 
 from .svdrp import SVDRP
 from .svdrp import SVDRP_COMMANDS
+from .svdrp import SVDRP_RESULT_CODE
+
 import logging
 import re
 from collections import namedtuple
 
-
-EPG_DATA_RECORD = '215'
 epg_info = namedtuple('EPGDATA', 'Channel Title Description')
-# timer_info = namedtuple('TIMER', 'Status Name Date Description')
-# channel_info = namedtuple('CHANNEL', 'Number Name')
 
 FLAG_TIMER_ACTIVE = 1
 FLAG_TIMER_INSTANT_RECORDING = 2
 FLAG_TIMER_VPS = 4
 FLAG_TIMER_RECORDING = 8
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -62,7 +59,7 @@ class PYVDR(object):
 
     @staticmethod
     def _parse_channel_response(channel_data):
-        _LOGGER.debug("Parsing Channel response to fields: %s" % channel_data)
+        _LOGGER.debug("Parsing Channel response to fields: %s" % channel_data.Value)
         channel_info = {}
 
         channel_parts = re.match(
@@ -77,16 +74,16 @@ class PYVDR(object):
     @staticmethod
     def _parse_timer_response(response):
         timer = {}
-        m = re.match(
+        timer_match = re.match(
             r'^(\d) (\d{1,2}):(\d{1,2}):(\d{4}-\d{2}-\d{2}):(\d{4}):(\d{4}):(\d+):(\d+):(.*):(.*)$',
             response.Value,
             re.M | re.I)
 
-        if m:
-            timer['status'] = m.group(2)
-            timer['channel'] = m.group(3)
-            timer['date'] = m.group(4)
-            timer['name'] = m.group(9)
+        if timer_match:
+            timer['status'] = timer_match.group(2)
+            timer['channel'] = timer_match.group(3)
+            timer['date'] = timer_match.group(4)
+            timer['name'] = timer_match.group(9)
             timer['description'] = ""
             timer['series'] = timer['name'].find('~') != -1
             timer['instant'] = False
@@ -101,7 +98,7 @@ class PYVDR(object):
         self.svdrp.send_cmd(SVDRP_COMMANDS.LIST_TIMERS)
         responses = self.svdrp.get_response()
         for response in responses:
-            if response.Code != '250':
+            if response.Code != SVDRP_RESULT_CODE.SUCCESS:
                 continue
             timers.append(self._parse_timer_response(response))
         return timers
@@ -110,7 +107,7 @@ class PYVDR(object):
         self.svdrp.send_cmd(SVDRP_COMMANDS.LIST_TIMERS)
         responses = self.svdrp.get_response()
         for response in responses:
-            if response.Code != '250':
+            if response.Code != SVDRP_RESULT_CODE.SUCCESS:
                 continue
             timer = self._parse_timer_response(response)
             if len(timer) <= 0:
@@ -129,7 +126,7 @@ class PYVDR(object):
         self.svdrp.send_cmd(f"{SVDRP_COMMANDS.LIST_EPG} {channel_no} now")
         epg_data = self.svdrp.get_response()[1:]
         for data in epg_data:
-            if data[0] == EPG_DATA_RECORD:
+            if data[0] == SVDRP_RESULT_CODE.EPG_DATA_RECORD:
                 epg = re.match(r'^(\S)\s(.*)$', data[2], re.M | re.I)
                 if epg is not None:
                     epg_field_type = epg.group(1)
