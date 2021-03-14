@@ -62,7 +62,7 @@ class PYVDR(object):
 
     @staticmethod
     def _parse_channel_response(channel_data):
-        _LOGGER.debug("Parsing Channel response to fields: %s" % channel_data.Value)
+        _LOGGER.debug("Parsing Channel response to fields: %s" % channel_data)
         channel_info = {}
 
         channel_parts = re.match(
