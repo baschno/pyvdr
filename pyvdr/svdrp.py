@@ -45,9 +45,10 @@ class SVDRP(object):
             try:
                 _LOGGER.debug("Setting up connection to {}".format(self.hostname))
                 self.socket = socket.create_connection((self.hostname, self.port), timeout=self.timeout)
-                self.responses = []
             except socket.error as se:
                 _LOGGER.info('Unable to connect. Not powered on? {}'.format(se))
+            finally:
+                self.responses = []
 
     def _disconnect(self, send_quit=False):
         _LOGGER.debug("Closing communication with server.")
@@ -69,6 +70,9 @@ class SVDRP(object):
     """
     def send_cmd(self, cmd):
         self._connect()
+
+        if not self.is_connected():
+            return
 
         command_list = [cmd]
         command_list.extend([SVDRP_COMMANDS.QUIT])
